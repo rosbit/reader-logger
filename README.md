@@ -6,7 +6,6 @@
 import (
 	logr "github.com/rosbit/reader-logger"
 	"encoding/json"
-	"testing"
 	"bytes"
 	"os"
 	"io"
