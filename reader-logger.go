@@ -10,8 +10,15 @@ func ReaderLogger(reader io.Reader, logger io.Writer, prompt string) (newReader 
 		return reader, func(){}
 	}
 
-	fmt.Fprintf(logger, "--- %s begin ---\n", prompt)
-	return io.TeeReader(reader, logger), func() {
-		fmt.Fprintf(logger, "\n--- %s end ---\n", prompt)
+	newReader = io.TeeReader(reader, logger)
+	if len(prompt) > 0 {
+		fmt.Fprintf(logger, "--- %s begin ---\n", prompt)
+		deferFunc = func() {
+			fmt.Fprintf(logger, "\n--- %s end ---\n", prompt)
+		}
+	} else {
+		deferFunc = func(){}
 	}
+
+	return
 }
