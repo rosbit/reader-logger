@@ -4,6 +4,7 @@ type Options struct {
 	reqPrompt   string
 	respPrompt  string
 	dumpingResp bool
+	querySwitchName string
 }
 
 type Option func(*Options)
@@ -18,6 +19,12 @@ func DumpingResponse(prompt string) Option {
 	return func(options *Options) {
 		options.dumpingResp = true
 		options.respPrompt = prompt
+	}
+}
+
+func WithQuerySwithName(name string) Option {
+	return func(options *Options) {
+		options.querySwitchName = name
 	}
 }
 

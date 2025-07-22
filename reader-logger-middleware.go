@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"io"
 	"os"
+	"strconv"
 )
 
 type HttpHandlerFunc = func(http.ResponseWriter, *http.Request, http.HandlerFunc)
@@ -22,6 +23,8 @@ func CreateBodyDumpingHandlerFunc2(dumper io.Writer, options ...Option) HttpHand
 	if len(option.reqPrompt) > 0 {
 		prompt = option.reqPrompt
 	}
+	querySwitchName := option.querySwitchName
+
 	if dumper != nil {
 		if f, ok := dumper.(*os.File); ok {
 			if f == os.Stderr || f == os.Stdout {
@@ -33,6 +36,19 @@ func CreateBodyDumpingHandlerFunc2(dumper io.Writer, options ...Option) HttpHand
 	}
 
 	return func(w http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
+		if len(querySwitchName) > 0 {
+			q := r.URL.Query()
+			dumpSwitch := q.Get(querySwitchName)
+			if len(dumpSwitch) == 0 {
+				if !q.Has(querySwitchName) {
+					next(w, r)
+					return
+				}
+			} else if b, err := strconv.ParseBool(dumpSwitch); err != nil || !b {
+				next(w, r)
+				return
+			}
+		}
 		if r.Body != nil {
 			nr, beginFunc, endFunc := ReaderLogger2(r.Body, dumper, prompt)
 			r.Body = wrapNopCloser(nr, beginFunc, endFunc)
